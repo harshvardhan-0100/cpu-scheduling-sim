@@ -1,0 +1,24 @@
+# Build artifacts
+build/
+*.o
+*.out
+*.exe
+a.out
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# VS Code
+.vscode/
+
+# Web
+web/node_modules/
+web/.next/
+web/dist/
+
+# OS
+.DS_Store
+Thumbs.db
