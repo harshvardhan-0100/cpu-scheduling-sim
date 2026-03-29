@@ -4,6 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   Legend, ResponsiveContainer
 } from "recharts";
+import "./App.css";
 
 // ── Scheduling Algorithms ────────────────────────────────────────────────────
 
@@ -116,10 +117,10 @@ function finalize(processes, gantt) {
   return { processes: result, gantt, avgWT, avgTAT };
 }
 
-// ── Colour palette per PID ────────────────────────────────────────────────────
+// ── Colour palette per PID (Muted academic colors) ─────────────────────────────
 const PALETTE = [
-  "#60a5fa","#34d399","#f472b6","#fb923c",
-  "#a78bfa","#facc15","#38bdf8","#4ade80",
+  "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
+  "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
 ];
 const pidColor = pid => PALETTE[(pid - 1) % PALETTE.length];
 
@@ -128,33 +129,63 @@ const pidColor = pid => PALETTE[(pid - 1) % PALETTE.length];
 function GanttChart({ gantt }) {
   if (!gantt.length) return null;
   const total = gantt[gantt.length - 1].end;
+  
+  // Generate time markers (0, 1, 2, 3...)
+  const timeMarkers = Array.from({ length: total + 1 }, (_, i) => i);
+  
   return (
-    <div style={{ overflowX: "auto", paddingBottom: 8 }}>
-      <div style={{ display: "flex", minWidth: 480, height: 52, borderRadius: 8, overflow: "hidden", border: "1px solid #1e293b" }}>
-        {gantt.map((g, i) => {
-          const w = ((g.end - g.start) / total) * 100;
-          return (
-            <div key={i} title={`P${g.pid}: ${g.start}→${g.end}`}
-              style={{
-                width: `${w}%`, background: pidColor(g.pid),
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 12, fontWeight: 700, color: "#0f172a",
-                borderRight: i < gantt.length - 1 ? "1px solid rgba(0,0,0,0.15)" : "none",
-                transition: "opacity 0.2s", cursor: "default",
-              }}
-              onMouseEnter={e => e.currentTarget.style.opacity = 0.75}
-              onMouseLeave={e => e.currentTarget.style.opacity = 1}
-            >
-              {w > 4 ? `P${g.pid}` : ""}
+    <div className="gantt-wrapper">
+      {/* Legend */}
+      <div className="gantt-legend">
+        <div className="legend-title">Process ID</div>
+        <div className="legend-items">
+          {[...new Set(gantt.map(g => g.pid))].map(pid => (
+            <div key={pid} className="legend-item">
+              <span className="legend-color" style={{ background: pidColor(pid) }}></span>
+              <span>P{pid}</span>
             </div>
-          );
-        })}
+          ))}
+        </div>
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#64748b", marginTop: 4 }}>
-        {gantt.map((g, i) => (
-          <span key={i} style={{ minWidth: 16, textAlign: "center" }}>{g.start}</span>
-        ))}
-        <span>{total}</span>
+
+      {/* Gantt Timeline */}
+      <div className="gantt-container">
+        {/* Time axis labels */}
+        <div className="gantt-axis">
+          <div className="gantt-axis-label">Time</div>
+          <div className="gantt-axis-markers">
+            {timeMarkers.map(t => (
+              <div key={t} className="gantt-marker">{t}</div>
+            ))}
+          </div>
+        </div>
+
+        {/* Gantt bars */}
+        <div className="gantt-bars">
+          {gantt.map((g, i) => {
+            const w = ((g.end - g.start) / total) * 100;
+            return (
+              <div
+                key={i}
+                className="gantt-block"
+                style={{
+                  width: `${w}%`,
+                  background: pidColor(g.pid),
+                }}
+                title={`P${g.pid}: ${g.start}→${g.end}`}
+              >
+                {w > 8 && <span className="gantt-label">P{g.pid}</span>}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Time scale */}
+        <div className="gantt-scale">
+          {timeMarkers.map(t => (
+            <div key={t} className="gantt-scale-mark"></div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -162,26 +193,24 @@ function GanttChart({ gantt }) {
 
 function MetricsTable({ processes }) {
   return (
-    <div style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+    <div className="metrics-table-wrapper">
+      <table className="metrics-table">
         <thead>
-          <tr style={{ background: "#0f172a" }}>
+          <tr>
             {["PID","Arrival","Burst","Priority","Completion","Turnaround","Waiting"].map(h => (
-              <th key={h} style={{ padding: "8px 12px", textAlign: "left", color: "#94a3b8", fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>{h}</th>
+              <th key={h}>{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {processes.map((p, i) => (
-            <tr key={p.pid} style={{ background: i % 2 === 0 ? "#0f172a55" : "transparent", borderBottom: "1px solid #1e293b" }}>
-              <td style={{ padding: "8px 12px" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: pidColor(p.pid), display: "inline-block" }} />
-                  <strong style={{ color: "#f1f5f9" }}>P{p.pid}</strong>
-                </span>
+            <tr key={p.pid} className={i % 2 === 0 ? "row-even" : "row-odd"}>
+              <td className="pid-cell">
+                <span className="pid-color" style={{ background: pidColor(p.pid) }}></span>
+                <strong>P{p.pid}</strong>
               </td>
               {[p.arrival, p.burst, p.priority ?? "—", p.completion, p.turnaround, p.waiting].map((v, j) => (
-                <td key={j} style={{ padding: "8px 12px", color: "#cbd5e1" }}>{v}</td>
+                <td key={j}>{v}</td>
               ))}
             </tr>
           ))}
@@ -241,85 +270,87 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#020817", color: "#e2e8f0", fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
+    <div className="app-container">
       {/* Header */}
-      <div style={{ borderBottom: "1px solid #1e293b", padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: "-0.03em", color: "#f8fafc" }}>
-            <span style={{ color: "#38bdf8" }}>CPU</span> Scheduling Simulator
-          </h1>
-          <p style={{ margin: "2px 0 0", fontSize: 12, color: "#475569" }}>Discrete-time OS simulation engine</p>
+      <header className="app-header">
+        <div className="header-title">
+          <h1>CPU Scheduling Simulator</h1>
+          <p className="header-subtitle">Discrete-time OS simulation engine</p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="header-tabs">
           {["single", "compare"].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{
-              padding: "7px 18px", borderRadius: 6, border: "1px solid",
-              borderColor: tab === t ? "#38bdf8" : "#1e293b",
-              background: tab === t ? "#0c2d48" : "transparent",
-              color: tab === t ? "#38bdf8" : "#64748b",
-              fontSize: 12, fontWeight: 600, cursor: "pointer", textTransform: "capitalize",
-              fontFamily: "inherit", letterSpacing: "0.04em",
-            }}>{t === "single" ? "Single Run" : "Compare All"}</button>
+            <button 
+              key={t}
+              onClick={() => setTab(t)}
+              className={`tab-button ${tab === t ? "active" : ""}`}
+            >
+              {t === "single" ? "Single Run" : "Compare All"}
+            </button>
           ))}
         </div>
-      </div>
+      </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", minHeight: "calc(100vh - 73px)" }}>
-        {/* Sidebar */}
-        <div style={{ borderRight: "1px solid #1e293b", padding: 24, display: "flex", flexDirection: "column", gap: 24 }}>
+      <div className="app-layout">
+        {/* Sidebar - Input Panel */}
+        <aside className="sidebar">
           {/* Algorithm selector */}
-          <div>
-            <label style={{ fontSize: 11, color: "#475569", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700 }}>Algorithm</label>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 10 }}>
+          <section className="sidebar-section">
+            <h3 className="section-label">Algorithm</h3>
+            <div className="algorithm-buttons">
               {ALGOS.map(a => (
-                <button key={a} onClick={() => setActiveAlgo(a)} style={{
-                  padding: "9px 14px", borderRadius: 6, border: "1px solid",
-                  borderColor: activeAlgo === a ? "#38bdf8" : "#1e293b",
-                  background: activeAlgo === a ? "#0c2d48" : "transparent",
-                  color: activeAlgo === a ? "#38bdf8" : "#94a3b8",
-                  fontSize: 13, fontWeight: activeAlgo === a ? 700 : 400,
-                  cursor: "pointer", textAlign: "left", fontFamily: "inherit",
-                  transition: "all 0.15s",
-                }}>{a}</button>
+                <button
+                  key={a}
+                  onClick={() => setActiveAlgo(a)}
+                  className={`algo-button ${activeAlgo === a ? "active" : ""}`}
+                >
+                  {a}
+                </button>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* Quantum */}
+          {/* Quantum (Round Robin only) */}
           {activeAlgo === "Round Robin" && (
-            <div>
-              <label style={{ fontSize: 11, color: "#475569", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700 }}>Time Quantum</label>
-              <input type="number" min={1} max={10} value={quantum}
+            <section className="sidebar-section">
+              <h3 className="section-label">Time Quantum</h3>
+              <input
+                type="number"
+                min={1}
+                max={10}
+                value={quantum}
                 onChange={e => setQuantum(Number(e.target.value))}
-                style={{ width: "100%", marginTop: 8, padding: "8px 12px", background: "#0f172a", border: "1px solid #1e293b", borderRadius: 6, color: "#f1f5f9", fontSize: 14, fontFamily: "inherit", boxSizing: "border-box" }}
+                className="numeric-input"
               />
-            </div>
+            </section>
           )}
 
           {/* Processes */}
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <label style={{ fontSize: 11, color: "#475569", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700 }}>Processes</label>
-              <button onClick={addProcess} style={{
-                padding: "4px 10px", borderRadius: 5, border: "1px solid #1e293b",
-                background: "transparent", color: "#38bdf8", fontSize: 11,
-                cursor: "pointer", fontFamily: "inherit", fontWeight: 700,
-              }}>+ Add</button>
+          <section className="sidebar-section sidebar-main">
+            <div className="section-header">
+              <h3 className="section-label">Processes</h3>
+              <button onClick={addProcess} className="add-button">+ Add</button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="process-list">
               {processes.map((p, i) => (
-                <div key={p.pid} style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8, padding: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: pidColor(p.pid) }}>P{p.pid}</span>
-                    <button onClick={() => removeProcess(i)} style={{ background: "none", border: "none", color: "#475569", cursor: "pointer", fontSize: 14, padding: 0 }}>×</button>
+                <div key={p.pid} className="process-card">
+                  <div className="process-header">
+                    <span className="process-pid">P{p.pid}</span>
+                    <button
+                      onClick={() => removeProcess(i)}
+                      className="remove-button"
+                    >
+                      ×
+                    </button>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+                  <div className="process-inputs">
                     {[["arrival", "AT"], ["burst", "BT"], ["priority", "PR"]].map(([field, label]) => (
-                      <div key={field}>
-                        <div style={{ fontSize: 9, color: "#475569", marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
-                        <input type="number" min={0} value={p[field]}
+                      <div key={field} className="input-field">
+                        <label>{label}</label>
+                        <input
+                          type="number"
+                          min={0}
+                          value={p[field]}
                           onChange={e => updateProcess(i, field, e.target.value)}
-                          style={{ width: "100%", padding: "5px 6px", background: "#020817", border: "1px solid #1e293b", borderRadius: 4, color: "#f1f5f9", fontSize: 12, fontFamily: "inherit", boxSizing: "border-box" }}
                         />
                       </div>
                     ))}
@@ -327,109 +358,112 @@ export default function App() {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          </section>
+        </aside>
 
-        {/* Main panel */}
-        <div style={{ padding: 32, overflowY: "auto" }}>
+        {/* Main Panel - Output */}
+        <main className="main-panel">
           {tab === "single" && result && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-              {/* Stats */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            <div className="single-run-view">
+              {/* Metrics Cards */}
+              <section className="metrics-cards">
                 {[
                   { label: "Avg Waiting Time", value: result.avgWT.toFixed(2), unit: "units" },
                   { label: "Avg Turnaround", value: result.avgTAT.toFixed(2), unit: "units" },
                   { label: "Processes", value: processes.length, unit: "total" },
                 ].map(s => (
-                  <div key={s.label} style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 10, padding: "18px 20px" }}>
-                    <div style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>{s.label}</div>
-                    <div style={{ fontSize: 28, fontWeight: 800, color: "#f8fafc", marginTop: 6, letterSpacing: "-0.03em" }}>{s.value}</div>
-                    <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>{s.unit}</div>
+                  <div key={s.label} className="metric-card">
+                    <div className="metric-label">{s.label}</div>
+                    <div className="metric-value">{s.value}</div>
+                    <div className="metric-unit">{s.unit}</div>
                   </div>
                 ))}
-              </div>
+              </section>
 
-              {/* Gantt */}
-              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 10, padding: 20 }}>
-                <h3 style={{ margin: "0 0 16px", fontSize: 13, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Gantt Chart — {activeAlgo}</h3>
+              {/* Gantt Chart */}
+              <section className="content-section">
+                <h2 className="section-title">Execution Timeline — {activeAlgo}</h2>
                 <GanttChart gantt={result.gantt} />
-              </div>
+              </section>
 
-              {/* Table */}
-              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 10, overflow: "hidden" }}>
-                <div style={{ padding: "16px 20px", borderBottom: "1px solid #1e293b" }}>
-                  <h3 style={{ margin: 0, fontSize: 13, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Process Metrics</h3>
-                </div>
+              {/* Process Metrics Table */}
+              <section className="content-section">
+                <h2 className="section-title">Process Metrics</h2>
                 <MetricsTable processes={result.processes} />
-              </div>
+              </section>
             </div>
           )}
 
           {tab === "compare" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 10, padding: 24 }}>
-                <h3 style={{ margin: "0 0 20px", fontSize: 13, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Algorithm Comparison</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={compareData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8, fontSize: 12 }} />
-                    <Legend wrapperStyle={{ fontSize: 12, color: "#94a3b8" }} />
-                    <Bar dataKey="Avg Wait" fill="#38bdf8" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Avg TAT" fill="#34d399" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Comparison table */}
-              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 10, overflow: "hidden" }}>
-                <div style={{ padding: "16px 20px", borderBottom: "1px solid #1e293b" }}>
-                  <h3 style={{ margin: 0, fontSize: 13, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Summary Table</h3>
+            <div className="comparison-view">
+              {/* Comparison Chart */}
+              <section className="content-section">
+                <h2 className="section-title">Algorithm Comparison</h2>
+                <div className="chart-container">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={compareData} margin={{ top: 16, right: 16, left: 0, bottom: 16 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#d0d0d0" />
+                      <XAxis dataKey="name" tick={{ fill: "#555", fontSize: 11 }} axisLine={{ stroke: "#999" }} />
+                      <YAxis tick={{ fill: "#555", fontSize: 11 }} axisLine={{ stroke: "#999" }} />
+                      <Tooltip contentStyle={{ background: "#f9f9f9", border: "1px solid #ccc", borderRadius: 4, fontSize: 12 }} />
+                      <Legend />
+                      <Bar dataKey="Avg Wait" fill="#1f77b4" />
+                      <Bar dataKey="Avg TAT" fill="#ff7f0e" />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                  <thead>
-                    <tr style={{ background: "#020817" }}>
-                      {["Algorithm", "Avg Waiting Time", "Avg Turnaround"].map(h => (
-                        <th key={h} style={{ padding: "10px 20px", textAlign: "left", color: "#475569", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ALGOS.map((a, i) => {
-                      const r = runAlgo(a, processes, quantum);
-                      const best = Math.min(...ALGOS.map(x => runAlgo(x, processes, quantum)?.avgWT ?? Infinity));
-                      const isBest = r && Math.abs(r.avgWT - best) < 0.01;
-                      return (
-                        <tr key={a} style={{ borderBottom: "1px solid #1e293b", background: i % 2 === 0 ? "#0f172a44" : "transparent" }}>
-                          <td style={{ padding: "11px 20px", fontWeight: 600, color: isBest ? "#34d399" : "#cbd5e1" }}>
-                            {a} {isBest && <span style={{ fontSize: 10, background: "#064e3b", color: "#34d399", padding: "2px 6px", borderRadius: 4, marginLeft: 6 }}>BEST</span>}
-                          </td>
-                          <td style={{ padding: "11px 20px", color: "#94a3b8" }}>{r ? r.avgWT.toFixed(2) : "—"}</td>
-                          <td style={{ padding: "11px 20px", color: "#94a3b8" }}>{r ? r.avgTAT.toFixed(2) : "—"}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              </section>
 
-              {/* All Gantt charts */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <h3 style={{ margin: 0, fontSize: 13, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>All Gantt Charts</h3>
-                {ALGOS.map(a => {
-                  const r = runAlgo(a, processes, quantum);
-                  return (
-                    <div key={a} style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 10, padding: 16 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#64748b", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.06em" }}>{a}</div>
-                      {r && <GanttChart gantt={r.gantt} />}
-                    </div>
-                  );
-                })}
-              </div>
+              {/* Comparison Summary Table */}
+              <section className="content-section">
+                <h2 className="section-title">Summary</h2>
+                <div className="metrics-table-wrapper">
+                  <table className="metrics-table">
+                    <thead>
+                      <tr>
+                        {["Algorithm", "Avg Waiting Time", "Avg Turnaround"].map(h => (
+                          <th key={h}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ALGOS.map((a, i) => {
+                        const r = runAlgo(a, processes, quantum);
+                        const best = Math.min(...ALGOS.map(x => runAlgo(x, processes, quantum)?.avgWT ?? Infinity));
+                        const isBest = r && Math.abs(r.avgWT - best) < 0.01;
+                        return (
+                          <tr key={a} className={i % 2 === 0 ? "row-even" : "row-odd"}>
+                            <td className={isBest ? "best-algo" : ""}>
+                              {a} {isBest && <span className="best-badge">● BEST</span>}
+                            </td>
+                            <td>{r ? r.avgWT.toFixed(2) : "—"}</td>
+                            <td>{r ? r.avgTAT.toFixed(2) : "—"}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              {/* All Gantt Charts */}
+              <section className="content-section">
+                <h2 className="section-title">All Execution Timelines</h2>
+                <div className="gantt-grid">
+                  {ALGOS.map(a => {
+                    const r = runAlgo(a, processes, quantum);
+                    return (
+                      <div key={a} className="gantt-item">
+                        <h3 className="gantt-item-title">{a}</h3>
+                        {r && <GanttChart gantt={r.gantt} />}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );

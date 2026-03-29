@@ -1,38 +1,660 @@
-.App {
-  text-align: center;
+/* ════════════════════════════════════════════════════════════════════════════
+   CPU Scheduling Simulator — Academic UI Style
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Global Styles ────────────────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+code, pre {
+  font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Courier New",
+    monospace;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* ── App Container ────────────────────────────────────────────────────────── */
+
+.app-container {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: #333;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 2px solid #d0d0d0;
+  background-color: #fafaf9;
+}
+
+.header-title h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #222;
+  letter-spacing: -0.5px;
+}
+
+.header-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #666;
+  font-weight: 400;
+}
+
+.header-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab-button {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background-color: #ffffff;
+  color: #666;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: border-color 0.1s, background-color 0.1s;
+}
+
+.tab-button:hover {
+  border-color: #999;
+  background-color: #f9f9f9;
+}
+
+.tab-button.active {
+  border-color: #1f77b4;
+  background-color: #f0f7ff;
+  color: #1f77b4;
+  font-weight: 600;
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Sidebar (Input Panel) ────────────────────────────────────────────────── */
+
+.sidebar {
+  border-right: 2px solid #d0d0d0;
+  padding: 24px;
+  overflow-y: auto;
+  background-color: #fafaf9;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar-main {
+  flex: 1;
+  min-height: 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Algorithm Buttons ────────────────────────────────────────────────────── */
+
+.algorithm-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.algo-button {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #666;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: border-color 0.1s, background-color 0.1s;
+}
+
+.algo-button:hover {
+  border-color: #999;
+  background-color: #f9f9f9;
+}
+
+.algo-button.active {
+  border-color: #1f77b4;
+  background-color: #e8f4ff;
+  color: #1f77b4;
+  font-weight: 600;
+}
+
+/* ── Input Fields ─────────────────────────────────────────────────────────── */
+
+.numeric-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #333;
+  font-size: 12px;
+  border-radius: 3px;
+  font-family: inherit;
+}
+
+.numeric-input:focus {
+  outline: none;
+  border-color: #1f77b4;
+  background-color: #f0f7ff;
+}
+
+/* ── Process List ─────────────────────────────────────────────────────────── */
+
+.process-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.process-card {
+  border: 1px solid #d0d0d0;
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 3px;
+}
+
+.process-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.process-pid {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1f77b4;
+}
+
+.remove-button {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  transition: color 0.1s;
 }
 
-.App-link {
-  color: #61dafb;
+.remove-button:hover {
+  color: #666;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.process-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+}
+
+.input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.input-field label {
+  font-size: 9px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+
+.input-field input {
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  background-color: #fafaf9;
+  color: #333;
+  font-size: 11px;
+  border-radius: 2px;
+  font-family: inherit;
+}
+
+.input-field input:focus {
+  outline: none;
+  border-color: #1f77b4;
+  background-color: #f0f7ff;
+}
+
+.add-button {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #1f77b4;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: border-color 0.1s;
+}
+
+.add-button:hover {
+  border-color: #1f77b4;
+  background-color: #f0f7ff;
+}
+
+/* ── Main Panel (Output) ──────────────────────────────────────────────────── */
+
+.main-panel {
+  padding: 32px;
+  overflow-y: auto;
+  background-color: #ffffff;
+}
+
+/* ── View Layouts ─────────────────────────────────────────────────────────── */
+
+.single-run-view,
+.comparison-view {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Metric Cards ─────────────────────────────────────────────────────────── */
+
+.metrics-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.metric-card {
+  border: 1px solid #d0d0d0;
+  padding: 18px;
+  background-color: #fafaf9;
+  border-radius: 3px;
+}
+
+.metric-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #222;
+  margin-top: 8px;
+  letter-spacing: -0.5px;
+}
+
+.metric-unit {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* ── Content Sections ─────────────────────────────────────────────────────── */
+
+.content-section {
+  border: 1px solid #d0d0d0;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 3px;
+}
+
+.section-title {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #222;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Gantt Chart ──────────────────────────────────────────────────────────── */
+
+.gantt-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gantt-legend {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+
+.legend-title {
+  font-weight: 600;
+  color: #222;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legend-items {
+  display: flex;
+  gap: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #999;
+  display: inline-block;
+}
+
+.gantt-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #d0d0d0;
+  padding: 12px;
+  background-color: #fafaf9;
+}
+
+.gantt-axis {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.gantt-axis-label {
+  width: 40px;
+  font-size: 10px;
+  color: #999;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-top: 20px;
+}
+
+.gantt-axis-markers {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+  align-items: center;
+  height: 24px;
+  font-size: 10px;
+  color: #666;
+  font-weight: 500;
+}
+
+.gantt-marker {
+  flex: 1;
+  text-align: center;
+  color: #999;
+  font-size: 9px;
+}
+
+.gantt-bars {
+  display: flex;
+  height: 40px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.gantt-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-weight: 600;
+  font-size: 11px;
+  min-width: 20px;
+}
+
+.gantt-label {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.gantt-scale {
+  display: flex;
+  gap: 4px;
+  border-top: 1px solid #ccc;
+  padding-top: 4px;
+}
+
+.gantt-scale-mark {
+  flex: 1;
+  border-left: 1px solid #ccc;
+  height: 4px;
+}
+
+/* ── Gantt Grid (Comparison) ──────────────────────────────────────────────── */
+
+.gantt-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.gantt-item {
+  border: 1px solid #d0d0d0;
+  padding: 16px;
+  background-color: #fafaf9;
+  border-radius: 3px;
+}
+
+.gantt-item-title {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #222;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── Chart Container ──────────────────────────────────────────────────────── */
+
+.chart-container {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+  border-radius: 3px;
+}
+
+/* ── Tables ───────────────────────────────────────────────────────────────── */
+
+.metrics-table-wrapper {
+  overflow-x: auto;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.metrics-table thead tr {
+  background-color: #f0f0f0;
+  border-bottom: 2px solid #d0d0d0;
+}
+
+.metrics-table th {
+  padding: 10px 12px;
+  text-align: left;
+  color: #333;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-size: 10px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.metrics-table th:last-child {
+  border-right: none;
+}
+
+.metrics-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.metrics-table tbody tr.row-even {
+  background-color: #f9f9f9;
+}
+
+.metrics-table tbody tr.row-odd {
+  background-color: #fff;
+}
+
+.metrics-table tbody tr:hover {
+  background-color: #f0f7ff;
+}
+
+.metrics-table td {
+  padding: 10px 12px;
+  color: #666;
+  border-right: 1px solid #e0e0e0;
+}
+
+.metrics-table td:last-child {
+  border-right: none;
+}
+
+.pid-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pid-cell strong {
+  color: #222;
+}
+
+.pid-color {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #999;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.best-algo {
+  color: #1f77b4 !important;
+  font-weight: 600;
+}
+
+.best-badge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 9px;
+  color: #ff7f0e;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .app-layout {
+    grid-template-columns: 280px 1fr;
   }
-  to {
-    transform: rotate(360deg);
+
+  .metrics-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 2px solid #d0d0d0;
+    padding: 16px;
+  }
+
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .main-panel {
+    padding: 16px;
   }
 }
