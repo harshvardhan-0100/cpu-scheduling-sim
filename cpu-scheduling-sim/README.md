@@ -1,54 +1,43 @@
-# CPU Scheduling Simulator
+# 🚀 CPU Scheduling Simulator
 
-A discrete-time CPU scheduling simulator built in C++ with a React web frontend (coming soon).
+🔗 **Live Demo:** https://cpu-scheduler-mu.vercel.app/
 
-## Algorithms Implemented
-- **FCFS** — First Come First Serve
-- **SJF** — Shortest Job First (non-preemptive)
-- **SRTF** — Shortest Remaining Time First (preemptive)
-- **Round Robin** — with configurable time quantum
-- **Priority** — Priority Scheduling (non-preemptive, lower value = higher priority)
+A discrete-time CPU scheduling simulator built with a **C++ simulation engine** and a **modern web-based interface** for visualization and interaction.
 
-## Build
+This project demonstrates core **Operating Systems concepts**, including scheduling strategies, process management, and performance trade-offs — implemented from scratch with a focus on clarity, correctness, and extensibility.
 
-```bash
-mkdir build && cd build
-cmake ..
-cmake --build .
-```
+---
 
-## Run
+## 🧠 What This Project Shows
 
-```bash
-# From build directory
-./scheduler fcfs
-./scheduler sjf
-./scheduler srtf
-./scheduler rr 3        # Round Robin with quantum=3
-./scheduler priority
-./scheduler all         # Run all and compare
-```
+- Deep understanding of **CPU scheduling algorithms**
+- Implementation of **preemptive and non-preemptive systems**
+- Use of **data structures like queues and priority queues**
+- Clear separation of **core logic (C++) and UI (React)**
+- Extensible architecture for future systems-level enhancements
 
-## Project Structure
+---
 
-```
-cpu-scheduling-sim/
-├── core/
-│   ├── algorithms/       # One header per scheduling algorithm
-│   ├── include/          # Shared types (Process, GanttEntry, utils)
-│   └── main.cpp          # CLI entry point
-├── web/                  # React frontend (Phase 2)
-├── sample_inputs/        # JSON process definitions
-└── CMakeLists.txt
-```
+## ⚙️ Algorithms Implemented
 
-## Roadmap
-- [x] FCFS
-- [x] SJF
-- [x] SRTF
-- [x] Round Robin
-- [x] Priority Scheduling
-- [ ] JSON file input
-- [ ] Web frontend with Gantt chart visualization
-- [ ] Algorithm comparison dashboard
-- [ ] Deploy to Vercel
+| Algorithm | Type | Description |
+|----------|------|------------|
+| **FCFS** | Non-preemptive | Processes executed in order of arrival |
+| **SJF** | Non-preemptive | Shortest job executed first |
+| **SRTF** | Preemptive | Shortest remaining time always selected |
+| **Round Robin** | Preemptive | Time-sliced execution with configurable quantum |
+| **Priority Scheduling** | Non-preemptive | Lower value = higher priority |
+
+---
+
+## 📊 Metrics Computed
+
+- **Completion Time**
+- **Turnaround Time**
+- **Waiting Time**
+
+> Designed to enable comparison of algorithm efficiency and fairness.
+
+---
+
+## 🏗️ Project Architecture
