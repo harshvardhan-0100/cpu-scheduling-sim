@@ -13,7 +13,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 # Main CLI executable
 add_executable(scheduler
-    core/main.cpp
+    main.cpp
 )
 
-target_include_directories(scheduler PRIVATE core/include core/algorithms)
+target_include_directories(scheduler PRIVATE include algorithms)
